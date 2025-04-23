@@ -18,17 +18,46 @@
       font-size: 28px;
       margin-bottom: 20px;
     }
-    input[type="text"], input[type="number"] {
-      padding: 10px;
+    input, button {
       font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-section {
+      background: #fff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    input[type="text"], input[type="email"], input[type="number"] {
+      padding: 10px;
       width: 100%;
+      border-radius: 8px;
+      border: 1px solid #ccc;
       box-sizing: border-box;
     }
-    input#search {
-      margin-bottom: 20px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    .btn-primary {
+      background-color: #7D2248;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s;
+    }
+    .btn-primary:hover {
+      background-color: #5c1a37;
+      transform: scale(1.05);
+    }
+    .btn-primary:active {
+      transform: scale(0.95);
     }
     table {
       width: 100%;
@@ -54,24 +83,6 @@
       background-color: #d1e7dd !important;
       transition: background-color 0.3s ease-in-out;
     }
-    .btn {
-      background-color: #7D2248;
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: transform 0.2s, background-color 0.3s ease-in-out;
-    }
-    .btn:hover {
-      background-color: #5c1a37;
-      transform: scale(1.05);
-    }
-    .btn:active {
-      transform: scale(0.95);
-    }
     @media (max-width: 768px) {
       table, thead, tbody, th, td, tr {
         display: block;
@@ -96,7 +107,29 @@
   </style>
 </head>
 <body>
-  <h2>JTSC Awards Banquet</h2>
+  <h2>Event Check-In App</h2>
+
+  <div class="form-section">
+    <h3 style="color:#7D2248">Add Guest</h3>
+    <div class="form-group">
+      <label for="guest-name">Name</label>
+      <input type="text" id="guest-name" placeholder="Enter guest name">
+    </div>
+    <div class="form-group">
+      <label for="guest-email">Email</label>
+      <input type="email" id="guest-email" placeholder="Enter guest email">
+    </div>
+    <div class="form-group">
+      <label for="guest-attendees">Total Attendees</label>
+      <input type="number" id="guest-attendees" placeholder="Enter number of attendees">
+    </div>
+    <div class="form-group">
+      <label for="guest-allergy">Food Allergies</label>
+      <input type="text" id="guest-allergy" placeholder="Enter allergies (if any)">
+    </div>
+    <button class="btn-primary" onclick="addGuest()">Add Guest</button>
+  </div>
+
   <input type="text" id="search" placeholder="Search swimmer name..." onkeyup="searchTable()">
   <table id="checkin-table">
     <thead>
@@ -114,25 +147,31 @@
   <script>
     const API_BASE = "https://event-checkin-app.onrender.com";
 
-    fetch(`${API_BASE}/attendees`)
-      .then(res => res.json())
-      .then(data => {
-        const tableBody = document.getElementById("table-body");
-        data.forEach(row => {
-          const tr = document.createElement("tr");
-          tr.className = row.checked_in === "yes" ? "checked-in" : "";
-          tr.innerHTML = `
-            <td data-label="Name">${row.name}</td>
-            <td data-label="Email">${row.email}</td>
-            <td data-label="Attendees"><input type="number" min="0" value="${row.attendees}" onchange="updateAttendees('${row.email}', this.value)"></td>
-            <td data-label="Allergy">${row.allergy}</td>
-            <td data-label="Check-In"><button class="btn" onclick="toggleCheckIn(this, '${row.email}')">
-              ${row.checked_in === "yes" ? "Uncheck" : "Check In"}
-            </button></td>
-          `;
-          tableBody.appendChild(tr);
+    function loadAttendees() {
+      fetch(`${API_BASE}/attendees`)
+        .then(res => res.json())
+        .then(data => {
+          const tableBody = document.getElementById("table-body");
+          tableBody.innerHTML = "";
+          data.forEach(row => renderRow(row));
         });
-      });
+    }
+
+    function renderRow(row) {
+      const tableBody = document.getElementById("table-body");
+      const tr = document.createElement("tr");
+      tr.className = row.checked_in === "yes" ? "checked-in" : "";
+      tr.innerHTML = `
+        <td data-label="Name">${row.name}</td>
+        <td data-label="Email">${row.email}</td>
+        <td data-label="Attendees"><input type="number" min="0" value="${row.attendees}" onchange="updateAttendees('${row.email}', this.value)"></td>
+        <td data-label="Allergy">${row.allergy}</td>
+        <td data-label="Check-In"><button class="btn" onclick="toggleCheckIn(this, '${row.email}')">
+          ${row.checked_in === "yes" ? "Uncheck" : "Check In"}
+        </button></td>
+      `;
+      tableBody.appendChild(tr);
+    }
 
     function toggleCheckIn(button, email) {
       const checkedIn = button.textContent === "Uncheck";
@@ -163,6 +202,36 @@
         rows[i].style.display = name.includes(input) ? "" : "none";
       }
     }
+
+    function addGuest() {
+      const name = document.getElementById("guest-name").value;
+      const email = document.getElementById("guest-email").value;
+      const attendees = document.getElementById("guest-attendees").value;
+      const allergy = document.getElementById("guest-allergy").value;
+
+      if (!name || !email || !attendees) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+
+      const guest = { name, email, attendees, allergy, checked_in: "no" };
+
+      fetch(`${API_BASE}/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(guest)
+      })
+      .then(res => res.json())
+      .then(() => {
+        renderRow(guest);
+        document.getElementById("guest-name").value = "";
+        document.getElementById("guest-email").value = "";
+        document.getElementById("guest-attendees").value = "";
+        document.getElementById("guest-allergy").value = "";
+      });
+    }
+
+    loadAttendees();
   </script>
 </body>
 </html>

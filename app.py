@@ -48,6 +48,14 @@ def update_attendee_count():
     write_csv(data)
     return jsonify({"status": "updated", "email": email, "attendees": attendees})
 
+@app.route('/add', methods=['POST'])
+def add_guest():
+    new_guest = request.json
+    data = read_csv()
+    data.append(new_guest)
+    write_csv(data)
+    return jsonify({"status": "added"})
+
 @app.route('/')
 def serve_index():
     return send_from_directory('.', 'index.html')
