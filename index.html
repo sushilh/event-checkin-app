@@ -2,68 +2,101 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Event Check-In</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      padding: 40px;
-      background: linear-gradient(to right, #f0f0f0, #ffffff);
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(to right, #f5f7fa, #c3cfe2);
       color: #333;
     }
     h2 {
       text-align: center;
       color: #7D2248;
+      font-size: 28px;
+      margin-bottom: 20px;
     }
     input[type="text"], input[type="number"] {
-      padding: 8px;
-      font-size: 14px;
+      padding: 10px;
+      font-size: 16px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 8px;
+      width: 100%;
+      box-sizing: border-box;
     }
     input#search {
-      width: 100%;
       margin-bottom: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     table {
-      border-collapse: collapse;
       width: 100%;
-      background-color: #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      border-radius: 8px;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
       overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     th, td {
-      padding: 14px;
+      padding: 12px;
       text-align: left;
     }
     th {
       background-color: #7D2248;
       color: white;
+      font-weight: 600;
     }
     tr:nth-child(even) {
-      background-color: #f9f9f9;
+      background-color: #f2f2f2;
     }
     .checked-in {
       background-color: #d1e7dd !important;
+      transition: background-color 0.3s ease-in-out;
     }
     .btn {
       background-color: #7D2248;
       color: white;
       border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 10px 16px;
+      border-radius: 8px;
       font-size: 14px;
+      font-weight: 500;
       cursor: pointer;
-      transition: 0.3s;
+      transition: transform 0.2s, background-color 0.3s ease-in-out;
     }
     .btn:hover {
       background-color: #5c1a37;
+      transform: scale(1.05);
+    }
+    .btn:active {
+      transform: scale(0.95);
+    }
+    @media (max-width: 768px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      thead tr {
+        display: none;
+      }
+      td {
+        position: relative;
+        padding-left: 50%;
+        margin-bottom: 12px;
+      }
+      td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        font-weight: bold;
+        color: #7D2248;
+      }
     }
   </style>
 </head>
 <body>
-  <h2>Event Check-In App</h2>
+  <h2>JTSC Awards Banquet</h2>
   <input type="text" id="search" placeholder="Search swimmer name..." onkeyup="searchTable()">
   <table id="checkin-table">
     <thead>
@@ -79,7 +112,7 @@
   </table>
 
   <script>
-    const API_BASE = "https://event-checkin-app.onrender.com"; // <-- Backend URL
+    const API_BASE = "https://event-checkin-app.onrender.com";
 
     fetch(`${API_BASE}/attendees`)
       .then(res => res.json())
@@ -89,11 +122,11 @@
           const tr = document.createElement("tr");
           tr.className = row.checked_in === "yes" ? "checked-in" : "";
           tr.innerHTML = `
-            <td>${row.name}</td>
-            <td>${row.email}</td>
-            <td><input type="number" min="0" value="${row.attendees}" onchange="updateAttendees('${row.email}', this.value)"></td>
-            <td>${row.allergy}</td>
-            <td><button class="btn" onclick="toggleCheckIn(this, '${row.email}')">
+            <td data-label="Name">${row.name}</td>
+            <td data-label="Email">${row.email}</td>
+            <td data-label="Attendees"><input type="number" min="0" value="${row.attendees}" onchange="updateAttendees('${row.email}', this.value)"></td>
+            <td data-label="Allergy">${row.allergy}</td>
+            <td data-label="Check-In"><button class="btn" onclick="toggleCheckIn(this, '${row.email}')">
               ${row.checked_in === "yes" ? "Uncheck" : "Check In"}
             </button></td>
           `;
