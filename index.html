@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Event Check-In</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 40px;
+      background: linear-gradient(to right, #f0f0f0, #ffffff);
+      color: #333;
+    }
+    h2 {
+      text-align: center;
+      color: #7D2248;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 30px;
+      background-color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 14px;
+      text-align: left;
+    }
+    th {
+      background-color: #7D2248;
+      color: white;
+      font-weight: 600;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    .checked-in {
+      background-color: #d1e7dd !important;
+    }
+    .btn {
+      background-color: #7D2248;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .btn:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+    .btn:hover:not(:disabled) {
+      background-color: #5c1a37;
+    }
+  </style>
+</head>
+<body>
+  <h2>Event Check-In App</h2>
+  <input type="text" id="search" placeholder="Search swimmer name..." onkeyup="searchTable()">
+  <table id="checkin-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Total Attendees</th>
+        <th>Food Allergies</th>
+        <th>Check-In</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+
+  <script>
+    fetch('/attendees')
+      .then(res => res.json())
+      .then(data => {
+        const tableBody = document.getElementById("table-body");
+        data.forEach((row) => {
+          const tr = document.createElement("tr");
+          tr.className = row.checked_in === "yes" ? "checked-in" : "";
+          tr.innerHTML = `
+            <td>${row.name}</td>
+            <td>${row.email}</td>
+            <td>${row.attendees}</td>
+            <td>${row.allergy}</td>
+            <td><button class="btn" onclick="checkIn(this, '${row.email}')" ${row.checked_in === "yes" ? "disabled" : ""}>
+              ${row.checked_in === "yes" ? "Checked In" : "Check In"}
+            </button></td>
+          `;
+          tableBody.appendChild(tr);
+        });
+      });
+
+    function checkIn(button, email) {
+      fetch('/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      }).then(() => {
+        const row = button.parentElement.parentElement;
+        row.classList.add("checked-in");
+        button.textContent = "Checked In";
+        button.disabled = true;
+      });
+    }
+
+    function searchTable() {
+      const input = document.getElementById("search").value.toLowerCase();
+      const rows = document.getElementById("table-body").getElementsByTagName("tr");
+      for (let i = 0; i < rows.length; i++) {
+        const name = rows[i].getElementsByTagName("td")[0].textContent.toLowerCase();
+        rows[i].style.display = name.includes(input) ? "" : "none";
+      }
+    }
+  </script>
+</body>
+</html>
