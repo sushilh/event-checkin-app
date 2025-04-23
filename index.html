@@ -109,7 +109,9 @@
 <body>
   <h2>Event Check-In App</h2>
 
-  <div class="form-section">
+  <button class="btn-primary" onclick="toggleAddGuest()" style="margin-bottom: 20px;">+ Add Guest</button>
+
+  <div class="form-section" id="add-guest-form" style="display:none">
     <h3 style="color:#7D2248">Add Guest</h3>
     <div class="form-group">
       <label for="guest-name">Name</label>
@@ -146,6 +148,11 @@
 
   <script>
     const API_BASE = "https://event-checkin-app.onrender.com";
+
+    function toggleAddGuest() {
+      const form = document.getElementById("add-guest-form");
+      form.style.display = form.style.display === "none" ? "block" : "none";
+    }
 
     function loadAttendees() {
       fetch(`${API_BASE}/attendees`)
@@ -228,6 +235,7 @@
         document.getElementById("guest-email").value = "";
         document.getElementById("guest-attendees").value = "";
         document.getElementById("guest-allergy").value = "";
+        toggleAddGuest();
       });
     }
 
