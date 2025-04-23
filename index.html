@@ -14,19 +14,20 @@
       text-align: center;
       color: #7D2248;
     }
-    input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      margin-top: 20px;
+    input[type="text"], input[type="number"] {
+      padding: 8px;
+      font-size: 14px;
       border: 1px solid #ccc;
-      border-radius: 8px;
+      border-radius: 6px;
+    }
+    input#search {
+      width: 100%;
+      margin-bottom: 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     table {
       border-collapse: collapse;
       width: 100%;
-      margin-top: 30px;
       background-color: #fff;
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
       border-radius: 8px;
@@ -39,7 +40,6 @@
     th {
       background-color: #7D2248;
       color: white;
-      font-weight: 600;
     }
     tr:nth-child(even) {
       background-color: #f9f9f9;
@@ -51,17 +51,13 @@
       background-color: #7D2248;
       color: white;
       border: none;
-      padding: 8px 14px;
+      padding: 6px 12px;
       border-radius: 6px;
       font-size: 14px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: 0.3s;
     }
-    .btn:disabled {
-      background-color: #aaa;
-      cursor: not-allowed;
-    }
-    .btn:hover:not(:disabled) {
+    .btn:hover {
       background-color: #5c1a37;
     }
   </style>
@@ -83,36 +79,46 @@
   </table>
 
   <script>
-    fetch('/attendees')
+    const API_BASE = "https://event-checkin-app.onrender.com"; // <-- Backend URL
+
+    fetch(`${API_BASE}/attendees`)
       .then(res => res.json())
       .then(data => {
         const tableBody = document.getElementById("table-body");
-        data.forEach((row) => {
+        data.forEach(row => {
           const tr = document.createElement("tr");
           tr.className = row.checked_in === "yes" ? "checked-in" : "";
           tr.innerHTML = `
             <td>${row.name}</td>
             <td>${row.email}</td>
-            <td>${row.attendees}</td>
+            <td><input type="number" min="0" value="${row.attendees}" onchange="updateAttendees('${row.email}', this.value)"></td>
             <td>${row.allergy}</td>
-            <td><button class="btn" onclick="checkIn(this, '${row.email}')" ${row.checked_in === "yes" ? "disabled" : ""}>
-              ${row.checked_in === "yes" ? "Checked In" : "Check In"}
+            <td><button class="btn" onclick="toggleCheckIn(this, '${row.email}')">
+              ${row.checked_in === "yes" ? "Uncheck" : "Check In"}
             </button></td>
           `;
           tableBody.appendChild(tr);
         });
       });
 
-    function checkIn(button, email) {
-      fetch('/checkin', {
+    function toggleCheckIn(button, email) {
+      const checkedIn = button.textContent === "Uncheck";
+      fetch(`${API_BASE}/checkin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email })
+        body: JSON.stringify({ email, checked_in: checkedIn ? "no" : "yes" })
       }).then(() => {
         const row = button.parentElement.parentElement;
-        row.classList.add("checked-in");
-        button.textContent = "Checked In";
-        button.disabled = true;
+        row.classList.toggle("checked-in", !checkedIn);
+        button.textContent = checkedIn ? "Check In" : "Uncheck";
+      });
+    }
+
+    function updateAttendees(email, value) {
+      fetch(`${API_BASE}/attendees`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, attendees: parseInt(value) || 0 })
       });
     }
 
